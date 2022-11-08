@@ -7,6 +7,8 @@
 import { APIGatewayProxyEvent } from 'aws-lambda';
 import { getUserId } from '../lambda/utils';
 import { TodoItem } from '../models/TodoItem';
+import { UpdateTodoRequest } from '../requests/UpdateTodoRequest';
+import { TodoUpdate } from '../models/TodoUpdate';
 // import * as createError from 'http-errors'
 
 
@@ -14,9 +16,9 @@ import { TodoItem } from '../models/TodoItem';
 // // TODO: Implement businessLogic
 
 export function todoBuilder(
-todoRequest:CreateTodoRequest, 
-event:APIGatewayProxyEvent): TodoItem
-{
+  todoRequest:CreateTodoRequest, 
+  event:APIGatewayProxyEvent): TodoItem
+  {
     const todoID = uuid.v4()
     const todo = {
       todoId: todoID,
@@ -27,4 +29,13 @@ event:APIGatewayProxyEvent): TodoItem
       ...todoRequest
     }
     return todo as TodoItem;
+}
+
+export function updateTodoBuilder (updateTodoData: UpdateTodoRequest, todoId: string): TodoUpdate | false {
+  if ((updateTodoData.name.length <= 0) || (todoId.length <= 0)) {
+    return false
+  } else {
+    console.log(todoId)
+    console.log(updateTodoData)
+  }
 }

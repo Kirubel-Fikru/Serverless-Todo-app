@@ -3,6 +3,7 @@
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
 // import { createLogger } from '../utils/logger'
 import { TodoItem } from '../models/TodoItem'
+import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 // import { TodoUpdate } from '../models/TodoUpdate';
 
  const XAWS = AWSXRay.captureAWS(AWS)
@@ -53,21 +54,61 @@ export async function createTodo(todo: TodoItem): Promise<TodoItem> {
     return null
   }
 
-  export async function updateTodo(todo:TodoItem): Promise<TodoItem> {
-    const result = await docClient.update({
-      TableName :todosTable,
+  // export async function updateTodo(todo:TodoItem): Promise<TodoItem> {
+  //   const result = await docClient.update({
+  //     TableName :todosTable,
+  //     Key: {
+  //       userId: todo.userId,
+  //       todoId: todo.todoId
+
+  //     },
+  //     UpdateExpression: 'set attachmentUrl =:attachmentUrl',
+  //     ExpressionAttributeValues:{
+  //       ':attachmentUrl' : todo.attachmentUrl
+  //     }
+
+  //   }).promise()
+    
+  //   return result.Attributes as TodoItem
+  // }
+
+  export async function updateTodo (todo: TodoItem, update: UpdateTodoRequest): Promise<TodoItem> {
+    await docClient.update({
+      TableName: todosTable,
       Key: {
         userId: todo.userId,
         todoId: todo.todoId
-
       },
-      UpdateExpression: 'set attachmentUrl =:attachmentUrl',
-      ExpressionAttributeValues:{
+      UpdateExpression: 'set #name = :name, #dueDate = :dueDate, #done = :done, attachmentUrl =:attachmentUrl',
+      ExpressionAttributeNames: {
+        '#name': 'name',
+        '#dueDate': 'dueDate',
+        '#done': 'done',
         ':attachmentUrl' : todo.attachmentUrl
+      },
+      ExpressionAttributeValues: {
+        ':name': update.name,
+        ':dueDate': update.dueDate,
+        ':done': update.done
       }
-
     }).promise()
-    
+  
+    return todo
+  }
+
+  export async function updateTodoById (todo: TodoItem): Promise<TodoItem> {
+    const result = await docClient.update({
+      TableName : todosTable,
+      Key: {
+        userId: todo.userId,
+        todoId: todo.todoId
+      },
+      UpdateExpression: 'set attachmentUrl = :attachmentUrl',
+      ExpressionAttributeValues: {
+        ':attachmentUrl': todo.attachmentUrl
+      }
+    }).promise()
+  
     return result.Attributes as TodoItem
   }
 
@@ -82,3 +123,17 @@ export async function createTodo(todo: TodoItem): Promise<TodoItem> {
   
     return new XAWS.DynamoDB.DocumentClient()
   }
+
+  export async function deleteTodo (todo: TodoItem): Promise<TodoItem> {
+    await docClient.delete({
+      TableName: todosTable,
+      Key: {
+        userId: todo.userId,
+        todoId: todo.todoId
+      },
+    }).promise()
+  
+    return todo
+  }
+
+  
