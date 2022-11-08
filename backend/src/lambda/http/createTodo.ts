@@ -3,27 +3,35 @@ import 'source-map-support/register'
 import * as middy from 'middy'
 import { cors } from 'middy/middlewares'
 import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
-//import { getUserId } from '../utils';
-//import { createTodo } from '../../businessLogic/todos'
 
-//import * as uuid from 'uuid'
-import { createTodo } from '../../helpers/todosAcess'
-import { todoBuilder } from '../../helpers/todos'
+import { createTodoBuilder } from '../../businessLogic/todos'
+import { createTodo } from '../../dataLayer/todosAcess'
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
-    const newTodo: CreateTodoRequest = JSON.parse(event.body)
-    // TODO: Implement creating a new TODO item
-  //const itemId =uuid.v4()
-  const todo = todoBuilder(newTodo,event)
-  await createTodo(todo)
-    
+    const newTodoData: CreateTodoRequest = JSON.parse(event.body)
+
+    const todo = createTodoBuilder(newTodoData, event)
+
+    if (!todo) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          item: null
+        })
+      }
+    } else {
+      console.log(newTodoData)
+    }
+
+    const newTodo = await createTodo(todo)
 
     return {
       statusCode: 201,
       body: JSON.stringify({
-        item: todo
-      })}
+        item: newTodo
+      })
+    }
   }
 )
 

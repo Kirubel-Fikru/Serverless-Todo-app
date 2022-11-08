@@ -3,19 +3,30 @@ import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import * as middy from 'middy'
 import { cors, httpErrorHandler } from 'middy/middlewares'
-
-//import { deleteTodo } from '../../businessLogic/todos'
-//import { getUserId } from '../utils'
-import { deleteTodo, getTodoById } from '../../helpers/todosAcess'
-
-
+import { deleteTodo, getTodoById } from '../../dataLayer/todosAcess'
+import { deleteTodoBuilder } from '../../businessLogic/todos'
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const todoId = event.pathParameters.todoId
 
+    const isValidTodoId = deleteTodoBuilder(todoId)
+
+    if (!isValidTodoId) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          item: null
+        })
+      }
+    } else {
+      console.log(todoId)
+    }
+
     const todo = await getTodoById(todoId)
+
     await deleteTodo(todo)
+
     return {
       statusCode: 200,
       body: JSON.stringify({
@@ -24,7 +35,6 @@ export const handler = middy(
     }
   }
 )
-
 
 handler
   .use(httpErrorHandler())

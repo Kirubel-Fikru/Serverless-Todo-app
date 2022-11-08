@@ -4,17 +4,18 @@ import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
 import * as middy from 'middy'
 import { cors, httpErrorHandler } from 'middy/middlewares'
 
-//import { updateTodo } from '../../businessLogic/todos'
 import { UpdateTodoRequest } from '../../requests/UpdateTodoRequest'
-//import { getUserId } from '../utils'
-import { getTodoById, updateTodo } from '../../helpers/todosAcess'
-import { updateTodoBuilder } from '../../helpers/todos'
+import { getTodoById, updateTodo } from '../../dataLayer/todosAcess'
+import { updateTodoBuilder } from '../../businessLogic/todos'
+
 
 export const handler = middy(
   async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
     const todoId = event.pathParameters.todoId
-    const updatedTodo: UpdateTodoRequest = JSON.parse(event.body)
-    const todo = updateTodoBuilder(updatedTodo, todoId)
+    const updateTodoData: UpdateTodoRequest = JSON.parse(event.body)
+
+    const todo = updateTodoBuilder(updateTodoData, todoId)
+
     if (!todo) {
       return {
         statusCode: 404,
@@ -23,9 +24,9 @@ export const handler = middy(
         })
       }
     } else {
-      console.log(updatedTodo)
+      console.log(updateTodoData)
     }
-    
+
     const oldTodo = await getTodoById(todoId)
 
     await updateTodo(oldTodo, todo)
